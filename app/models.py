@@ -27,7 +27,7 @@ class User(UserMixin, db.Model):
     followed = db.relationship(
         'User', secondary=followers,
         primaryjoin=(followers.c.follower_id == id),
-        secondaryjoin=(followers.c.follower_id == id),
+        secondaryjoin=(followers.c.followed_id == id),
         backref=db.backref('followers', lazy='dynamic'), lazy='dynamic'
     )
 
@@ -64,8 +64,7 @@ class User(UserMixin, db.Model):
     # then return 0 or 1 depending on whether there is existing follow or not
     def is_following(self, user):
         return self.followed.filter(
-            followers.c.follower_id == user.id
-        ).count() > 0
+            followers.c.followed_id == user.id).count() > 0
 
     # returning the posts from users followed by the user
 
