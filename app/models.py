@@ -6,6 +6,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import db, login
 
+# followers association table
+
+
+followers = db.Table('followers',
+                     db.Column('follower_id', db.Integer, db.ForeignKey('user.id')),
+                     db.Column('followed_id', db.Integer, db.ForeignKey('user.id'))
+                     )
+
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -15,6 +23,13 @@ class User(UserMixin, db.Model):
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     about_me = db.Column(db.String(140))
     last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+    # reference back to followed from followers
+    followed = db.relationship(
+        'User', secondary=followers,
+        primaryjoin=(followers.c.follower_id == id),
+        secondaryjoin=(followers.c.follower_id == id),
+        backref=db.backref('followers', lazy='dynamic'), lazy='dynamic'
+    )
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -32,6 +47,39 @@ class User(UserMixin, db.Model):
         return 'https://www.gravatar.com/avatar/{}?d=identicon&s={}'.format(
             digest, size
         )
+
+    # enabling users to follow/unfollow other users
+
+    def follow(self, user):
+        # check if not following already before appending
+        if not self.is_following(user):
+            self.followed.append(user)
+
+    def unfollow(self, user):
+        # check if was following before unfollowing
+        if self.is_following(user):
+            self.followed.remove(user)
+
+    # check if a link between 2 users already exists
+    # then return 0 or 1 depending on whether there is existing follow or not
+    def is_following(self, user):
+        return self.followed.filter(
+            followers.c.follower_id == user.id
+        ).count() > 0
+
+    # returning the posts from users followed by the user
+
+    def followed_posts(self):
+        # join the posts and followers by author == followed user
+        # filter and retain only data with follower == current user
+        # get posts created by the current user
+        # join both and order
+        followed = Post.query.join(
+            followers, (followers.c.followed_id == Post.user_id)).filter(
+            followers.c.follower_id == self.id)
+        own = Post.query.filter_by(user_id=self.id)
+
+        return followed.union(own).order_by(Post.timestamp.desc())
 
 
 # adding on posts
