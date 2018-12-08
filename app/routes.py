@@ -222,6 +222,7 @@ def reset_password(token):
     user = User.verify_reset_password_token(token)
     # case the user is not found in the db bring home
     if not user:
+        print("Invalid token")
         return redirect(url_for('index'))
     # call the reset form
     form = ResetPasswordForm()
