@@ -18,5 +18,9 @@ class Config(object):
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     ADMINS = ['oasisagano@gmail.com']
+    # accepted languages
     LANGUAGES = ['en', 'es']
+    # pagination setting
     POSTS_PER_PAGE = 3
+    # get microsoft key from environment variable
+    MS_TRANSLATOR_KEY = os.environ.get('MS_TRANSLATOR_KEY')
