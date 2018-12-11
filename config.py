@@ -27,3 +27,4 @@ class Config(object):
     POSTS_PER_PAGE = 3
     # get microsoft key from environment variable
     MS_TRANSLATOR_KEY = os.environ.get('MS_TRANSLATOR_KEY')
+    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
