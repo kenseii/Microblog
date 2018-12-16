@@ -1,3 +1,4 @@
+import json
 import jwt
 from datetime import datetime
 from flask_login import UserMixin
@@ -85,6 +86,8 @@ class User(UserMixin, db.Model):
                                         backref='recipient', lazy='dynamic')
 
     last_message_read_time = db.Column(db.DateTime)
+    notifications = db.relationship('Notification', backref='user',
+                                    lazy='dynamic')
 
     # counts messages whose arrival time is sooner than the one of last read
     def new_messages(self):
@@ -158,6 +161,15 @@ class User(UserMixin, db.Model):
             return
         return User.query.get(id)
 
+    # this method adds a notification to a user after checking that it wasnt there already
+    # if so delete the old one
+
+    def add_notification(self, name, data):
+        self.notifications.filter_by(name=name).delete()
+        n = Notification(name=name, payload_json=json.dumps(data), user=self)
+        db.session.add(n)
+        return n
+
 
 # adding on posts
 
@@ -194,3 +206,14 @@ class Message(db.Model):
 
     def __repr__(self):
         return '<Message {}>'.format(self.body)
+
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    timestamp = db.Column(db.Float, index=True, default=time)
+    payload_json = db.Column(db.Text)
+
+    def get_data(self):
+        return json.loads(str(self.payload_json))
