@@ -7,8 +7,8 @@ from guess_language import guess_language
 
 from app import db
 from app.main import bp
-from app.main.forms import EditProfileForm, PostForm, SearchForm
-from app.models import User, Post
+from app.main.forms import EditProfileForm, PostForm, SearchForm, MessageForm
+from app.models import User, Post, Message
 from app.translate import translate
 
 
@@ -157,3 +157,23 @@ def search():
 def user_popup(username):
     user = User.query.filter_by(username=username).first_or_404()
     return render_template('user_popup.html', user=user)
+
+
+# route to send messages
+
+@bp.route('/send_message/<recipient>', methods=['GET', 'POST'])
+@login_required
+def send_message(recipient):
+    # get the recipient information from the given username
+    user = User.query.filter_by(username=recipient).first_or_404()
+    form = MessageForm()
+    if form.validate_on_submit():
+        msg = Message(author=current_user,
+                      recipient=user,
+                      body=form.message.data)
+        db.session.add(msg)
+        db.session.commit()
+        flash(_('Your message has been sent.'))
+        return redirect(url_for('main.user', username=recipient))
+    return render_template('send_message.html', title=_('Send Message'),
+                           form=form, recipient=recipient)
