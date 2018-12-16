@@ -51,6 +51,6 @@ class PostForm(FlaskForm):
 # Private messages form
 class MessageForm(FlaskForm):
     message = TextAreaField(_l('Message'), validators=[
-        DataRequired(), length(min=0, max=140)
+        DataRequired(), Length(min=0, max=140)
     ])
     submit = SubmitField(_l('Submit'))
