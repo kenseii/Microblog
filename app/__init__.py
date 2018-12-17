@@ -1,7 +1,6 @@
 import logging
 import os
-from logging.handlers import SMTPHandler, RotatingFileHandler
-
+import rq
 from elasticsearch import Elasticsearch
 from flask import Flask, request, current_app
 from flask_babel import Babel, lazy_gettext as _l
@@ -11,6 +10,8 @@ from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
+from logging.handlers import SMTPHandler, RotatingFileHandler
+from redis import Redis
 
 from config import Config
 
@@ -45,6 +46,12 @@ def create_app(config_class=Config):
 
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
+
+    # redis setup + create a queue for tasks to come
+    # this way i can call it from anywhere inside the app desho
+
+    app.redis = Redis.from_url(app.config['REDIS_URL'])
+    app.task_queue = rq.Queue('microblog-tasks', connection=app.redis)
 
     if not app.debug and not app.testing:
         if app.config['MAIL_SERVER']:
