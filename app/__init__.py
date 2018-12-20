@@ -103,6 +103,10 @@ def create_app(config_class=Config):
     app.logger.setLevel(logging.INFO)
     app.logger.info('Microblog startup')
 
+    # register the api app in the general app
+    from app.api import bp as api_bp
+    app.register_blueprint(api_bp, url_prefix='/api')
+
     return app
 
 
