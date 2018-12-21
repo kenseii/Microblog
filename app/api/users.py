@@ -1,14 +1,17 @@
-from app.api import bp
+from flask import jsonify, request, url_for, g, abort
+
 from app import db
+from app.api import bp
+from app.api.auth import token_auth
 from app.api.errors import bad_request
 from app.models import User
-from flask import jsonify, request, url_for
 
 
 # single user details return
 
 
 @bp.route('/users/<int:id>', methods=['GET'])
+@token_auth.login_required
 def get_user(id):
     return jsonify(User.query.get_or_404(id).to_dict())
 
@@ -17,6 +20,7 @@ def get_user(id):
 # then check the records the user needs per page if not provided bring 10
 # then query and format
 @bp.route('/users', methods=['GET'])
+@token_auth.login_required
 def get_users():
     page = request.args.get('page', 1, type=int)
     per_page = min(request.args.get('per_page', 10, type=int), 100)
@@ -28,6 +32,7 @@ def get_users():
 # if the user hasnt specified the page and perpage take default
 # return the followers data in collection dict
 @bp.route('/users/<int:id>/followers', methods=['GET'])
+@token_auth.login_required
 def get_followers(id):
     user = User.query.get_or_404(id)
     page = request.args.get('page', 1, type=int)
@@ -41,6 +46,7 @@ def get_followers(id):
 # if the user hasn't specified the page and perpage take default
 # return the following data in collection dict
 @bp.route('/users/<int:id>/followed', methods=['GET'])
+@token_auth.login_required
 def get_followed(id):
     user = User.query.get_or_404(id)
     page = request.args.get('page', 1, type=int)
@@ -73,12 +79,17 @@ def create_user():
     return response
 
 
+# first check if the current user is not trying to edit other user
+# if so abort
 # check the username and email if they are not the current one
 # if so check if they have been changes on the currently stored
 # if no problem save in the db
 
 @bp.route('/users/<int:id>', methods=['PUT'])
+@token_auth.login_required
 def update_user(id):
+    if g.current_user.id != id:
+        abort(403)
     user = User.query.get_or_404(id)
     data = request.get_json() or {}
     if 'username' in data and data['username'] != user.username and \
