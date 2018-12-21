@@ -9,6 +9,7 @@ elasticsearch==6.3.1
 Flask==1.0.2
 Flask-Babel==0.12.2
 Flask-Bootstrap==3.3.7.1
+Flask-HTTPAuth==3.2.4
 Flask-Login==0.4.1
 Flask-Mail==0.9.1
 Flask-Migrate==2.3.1
@@ -17,12 +18,14 @@ Flask-SQLAlchemy==2.3.2
 Flask-WTF==0.14.2
 guess-language-spirit==0.5.3
 gunicorn==19.9.0
+httpie==1.0.2
 idna==2.7
 itsdangerous==1.1.0
 Jinja2==2.10
 Mako==1.0.7
 MarkupSafe==1.1.0
 psycopg2==2.7.6.1
+Pygments==2.3.1
 PyJWT==1.7.1
 python-dateutil==2.7.5
 python-dotenv==0.10.0
